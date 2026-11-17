@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071019">
+  <title>WATER CLIENT — prévia interativa</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="site-head">
+    <a class="wordmark" href="#" aria-label="Water Client"><span class="drop"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3C17 14 8 22 8 31a16 16 0 0 0 32 0C40 22 31 14 24 3Z"/><path class="wave" d="M13 31c4-3 7-3 11 0s7 3 11 0v4c-4 3-7 3-11 0s-7-3-11 0z"/></svg></span><span>WATER <b>CLIENT</b></span></a>
+    <span class="preview-label"><i></i> PRÉVIA INTERATIVA · DADOS DE DEMONSTRAÇÃO</span>
+  </header>
+  <main class="stage">
+    <section class="launcher" id="launcher" aria-label="Demonstração horizontal do Water Client">
+      <section class="welcome" id="welcome">
+        <div class="welcome-copy">
+          <div class="brand-lockup"><span class="brand-drop"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3C17 14 8 22 8 31a16 16 0 0 0 32 0C40 22 31 14 24 3Z"/><path class="wave" d="M13 31c4-3 7-3 11 0s7 3 11 0v4c-4 3-7 3-11 0s-7-3-11 0z"/></svg></span><span>WATER<br><strong>CLIENT</strong></span></div>
+          <div class="welcome-text"><span class="eyebrow">UMA NOVA FORMA DE JOGAR</span><h1>O client mais limpo<br>para celulares.</h1><p>Minecraft Java Edition, com uma experiência pensada para jogar deitado.</p></div>
+          <div class="welcome-foot"><span class="live-dot"></span> Interface horizontal · versão conceitual</div>
+        </div>
+        <div class="account-choice">
+          <div class="choice-head"><span class="eyebrow">PRIMEIRO ACESSO</span><h2>Como você quer entrar?</h2><p>Escolha um perfil para continuar.</p></div>
+          <button class="account-card premium" id="premiumChoice">
+            <span class="account-icon">✦</span><span class="account-info"><strong>Minecraft Java Original</strong><small>Entre com a conta Microsoft que possui o jogo.</small></span><span class="arrow">→</span>
+          </button>
+          <button class="account-card offline" id="offlineChoice">
+            <span class="account-icon">◉</span><span class="account-info"><strong>Conta Offline</strong><small>Crie um perfil local sem senha.</small></span><span class="arrow">→</span>
+          </button>
+          <div class="account-note">Perfis Offline não são verificados pela Microsoft. Alguns servidores podem exigir uma conta original.</div>
+          <button class="text-button" id="skipWelcome">Explorar a prévia de demonstração <span>↗</span></button>
+        </div>
+      </section>
+
+      <section class="auth-screen hidden" id="premiumScreen">
+        <button class="back-button" data-back>← Voltar</button><div class="auth-card"><span class="account-icon large">✦</span><span class="eyebrow">CONTA PREMIUM</span><h2>Entre com segurança.</h2><p>A autenticação Microsoft oficial será conectada após o registro de OAuth do aplicativo. Esta prévia não coleta credenciais nem simula um login.</p><div class="honest-state"><i></i> Autenticação não conectada na demonstração</div><button class="primary-button" data-back>Voltar à escolha de conta</button></div>
+      </section>
+      <section class="auth-screen hidden" id="offlineScreen">
+        <button class="back-button" data-back>← Voltar</button><div class="auth-card"><span class="account-icon large">◉</span><span class="eyebrow">PERFIL LOCAL</span><h2>Escolha seu nome.</h2><p>Use de 3 a 16 letras, números ou sublinhados. Sem senha; este perfil não verifica identidade online.</p><form id="offlineForm"><label for="offlineName">NOME DO JOGADOR</label><input id="offlineName" maxlength="16" minlength="3" pattern="[A-Za-z0-9_]{3,16}" placeholder="Player123" required><button class="primary-button" type="submit">Criar perfil Offline <span>→</span></button></form></div>
+      </section>
+
+      <section class="dashboard hidden" id="dashboard">
+        <header class="app-top"><div class="app-brand"><span class="mini-drop"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3C17 14 8 22 8 31a16 16 0 0 0 32 0C40 22 31 14 24 3Z"/><path class="wave" d="M13 31c4-3 7-3 11 0s7 3 11 0v4c-4 3-7 3-11 0s-7-3-11 0z"/></svg></span><span>WATER <b>CLIENT</b></span></div><div class="top-status"><span class="demo-state"><i></i> DEMO</span><button class="profile-chip" id="profileChip"><span class="avatar">P</span><span><b id="activeName">Player123</b><small id="activeType">Offline</small></span><span class="chevron">⌄</span></button><button class="icon-button" data-page="Configurações" aria-label="Configurações">⚙</button></div></header>
+        <div class="app-body">
+          <aside class="sidebar" id="sidebar">
+            <nav>
+              <button class="nav-item active" data-page="Início"><span>⌂</span> Início</button>
+              <button class="nav-item" data-page="Versões"><span>▤</span> Versões</button>
+              <button class="nav-item" data-page="Mods"><span>✣</span> Mods</button>
+              <button class="nav-item" data-page="Servidores"><span>▣</span> Servidores</button>
+              <button class="nav-item" data-page="Downloads"><span>↓</span> Downloads</button>
+              <button class="nav-item" data-page="Contas"><span>♙</span> Contas</button>
+            </nav>
+            <div class="sidebar-bottom"><button class="nav-item" data-page="Configurações"><span>⚙</span> Configurações</button><div class="build-label">WATER CLIENT <span>PRÉVIA</span></div></div>
+          </aside>
+          <section class="content" id="content" aria-live="polite"></section>
+        </div>
+      </section>
+    </section>
+    <footer class="stage-caption"><span><b>WATER CLIENT</b> · experiência conceitual em modo horizontal</span><span>Sem login, download ou instalação real nesta prévia</span></footer>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
