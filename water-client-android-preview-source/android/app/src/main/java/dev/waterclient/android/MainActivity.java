@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 /** Primeira base Android: navegação landscape e perfis Offline persistentes. */
 public final class MainActivity extends Activity {
     private static final String TAG = "WaterClientDiag";
-    private static final String DIAGNOSTIC_BUILD = "diag-2026-11-17-r4";
+    private static final String DIAGNOSTIC_BUILD = "mod-installer-feature-1";
     private static final int BG = Color.rgb(7, 15, 25);
     private static final int PANEL = Color.rgb(17, 29, 43);
     private static final int PANEL_2 = Color.rgb(25, 41, 57);
@@ -48,6 +48,8 @@ public final class MainActivity extends Activity {
     private ScrollView pageScroll;
     private String activePage = "Início";
     private String activeProfile = "";
+    private String selectedGameVersion = "1.21.1";
+    private String selectedModLoader = "fabric";
     private final ExecutorService network = Executors.newSingleThreadExecutor();
     private int renderGeneration;
 
@@ -58,6 +60,8 @@ public final class MainActivity extends Activity {
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         activeProfile = getPreferences(MODE_PRIVATE).getString("active-profile", "");
+        selectedGameVersion = getPreferences(MODE_PRIVATE).getString("mod-game-version", "1.21.1");
+        selectedModLoader = getPreferences(MODE_PRIVATE).getString("mod-loader", "fabric");
         List<String> savedProfiles = readProfiles();
         if (activeProfile.trim().isEmpty() && !savedProfiles.isEmpty()) {
             activeProfile = savedProfiles.get(0);
@@ -116,13 +120,12 @@ public final class MainActivity extends Activity {
         nav.setVisibility("Boas-vindas".equals(activePage) ? View.GONE : View.VISIBLE);
         for (String page : pages) {
             if ("Configurações".equals(page)) continue;
-            boolean selected = page.equals(activePage);
-            Button item = button(navIcon(page) + "  " + page, selected);
+            Button item = button(navIcon(page) + "  " + page, page.equals(activePage));
             item.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
             item.setPadding(dp(12), 0, dp(8), 0);
             item.setTextSize(12);
-            item.setTextColor(selected ? AQUA : TEXT);
-            item.setBackgroundTintList(android.content.res.ColorStateList.valueOf(selected ? Color.rgb(23, 60, 67) : PANEL_2));
+            item.setTextColor(page.equals(activePage) ? AQUA : TEXT);
+            item.setBackgroundTintList(android.content.res.ColorStateList.valueOf(page.equals(activePage) ? Color.rgb(23, 60, 67) : PANEL_2));
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, dp(42));
             p.bottomMargin = dp(5);
             nav.addView(item, p);
@@ -130,13 +133,12 @@ public final class MainActivity extends Activity {
         }
         View navSpacer = new View(this);
         nav.addView(navSpacer, new LinearLayout.LayoutParams(1, 0, 1f));
-        boolean settingsSelected = "Configurações".equals(activePage);
-        Button settingsItem = button("⚙  Configurações", settingsSelected);
+        Button settingsItem = button("⚙  Configurações", "Configurações".equals(activePage));
         settingsItem.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
         settingsItem.setPadding(dp(12), 0, dp(8), 0);
         settingsItem.setTextSize(12);
-        settingsItem.setTextColor(settingsSelected ? AQUA : TEXT);
-        settingsItem.setBackgroundTintList(android.content.res.ColorStateList.valueOf(settingsSelected ? Color.rgb(23, 60, 67) : PANEL_2));
+        settingsItem.setTextColor("Configurações".equals(activePage) ? AQUA : TEXT);
+        settingsItem.setBackgroundTintList(android.content.res.ColorStateList.valueOf("Configurações".equals(activePage) ? Color.rgb(23, 60, 67) : PANEL_2));
         nav.addView(settingsItem, new LinearLayout.LayoutParams(-1, dp(42)));
         settingsItem.setOnClickListener(v -> { activePage = "Configurações"; render(); });
 
@@ -238,7 +240,22 @@ public final class MainActivity extends Activity {
     private void modsPage() {
         final int requestGeneration = renderGeneration;
         addText("Biblioteca de mods", 26, TEXT, true);
-        addText("Busca real no catálogo público Modrinth. A instalação exige runtime e instância configurados.", 13, MUTED, false);
+        addText("Pesquise no Modrinth e instale o JAR na instância padrão do Water Client.", 13, MUTED, false);
+
+        LinearLayout filters = new LinearLayout(this);
+        filters.setOrientation(LinearLayout.HORIZONTAL);
+        Button versionFilter = button("Minecraft " + selectedGameVersion + "  ⌄", false);
+        Button loaderFilter = button(loaderLabel(selectedModLoader) + "  ⌄", false);
+        filters.addView(versionFilter, new LinearLayout.LayoutParams(dp(190), dp(44)));
+        LinearLayout.LayoutParams loaderParams = new LinearLayout.LayoutParams(dp(160), dp(44));
+        loaderParams.leftMargin = dp(8);
+        filters.addView(loaderFilter, loaderParams);
+        LinearLayout.LayoutParams filtersParams = new LinearLayout.LayoutParams(-1, -2);
+        filtersParams.bottomMargin = dp(8);
+        content.addView(filters, filtersParams);
+        versionFilter.setOnClickListener(v -> chooseModTarget(true));
+        loaderFilter.setOnClickListener(v -> chooseModTarget(false));
+
         LinearLayout searchRow = new LinearLayout(this);
         searchRow.setOrientation(LinearLayout.HORIZONTAL);
         EditText query = new EditText(this);
@@ -251,8 +268,13 @@ public final class MainActivity extends Activity {
         LinearLayout results = new LinearLayout(this);
         results.setOrientation(LinearLayout.VERTICAL);
         content.addView(results, new LinearLayout.LayoutParams(-1, -2));
-        TextView status = label("Pesquise um projeto para consultar a API oficial.", 12, MUTED, false);
+        TextView status = label("Os mods serão guardados na instância escolhida.", 12, MUTED, false);
         results.addView(status);
+        try {
+            addText("Destino: " + GameInstanceManager.getModsDirectory(this, selectedGameVersion, selectedModLoader).getAbsolutePath(), 10, MUTED, false);
+        } catch (Exception error) {
+            addText("Não foi possível preparar a pasta da instância: " + error.getMessage(), 10, MUTED, false);
+        }
         search.setOnClickListener(v -> {
             String term = query.getText().toString().trim();
             if (term.trim().isEmpty()) { status.setText("Digite o nome de um mod."); return; }
@@ -264,13 +286,24 @@ public final class MainActivity extends Activity {
                     runOnUiThread(() -> {
                         if (isFinishing() || !"Mods".equals(activePage) || requestGeneration != renderGeneration) return;
                         results.removeAllViews();
-                        if (found.isEmpty()) results.addView(label("Nenhum mod encontrado.", 13, MUTED, false));
+                        if (found.isEmpty()) {
+                            status.setText("Nenhum mod encontrado para essa pesquisa.");
+                            results.addView(status);
+                        } else {
+                            status.setText("Toque em Instalar para escolher a versão compatível e baixar o JAR.");
+                            results.addView(status);
+                        }
                         for (ModrinthApi.Project project : found) {
                             LinearLayout item = card();
                             item.addView(label(project.title, 15, TEXT, true));
-                            item.addView(label(project.description, 12, MUTED, false));
+                            TextView description = label(project.description, 12, MUTED, false);
+                            description.setMaxLines(2);
+                            item.addView(description);
                             item.addView(label(String.format(java.util.Locale.US, "%,d downloads · %s", project.downloads, project.slug), 10, AQUA, false));
-                            Button open = button("Abrir página do projeto", false);
+                            Button install = button("Instalar", true);
+                            install.setOnClickListener(x -> installMod(project, install, status, requestGeneration));
+                            item.addView(install);
+                            Button open = button("Ver no Modrinth", false);
                             open.setOnClickListener(x -> startActivity(new Intent(Intent.ACTION_VIEW,
                                     Uri.parse("https://modrinth.com/mod/" + Uri.encode(project.slug)))));
                             item.addView(open);
@@ -282,11 +315,88 @@ public final class MainActivity extends Activity {
                     runOnUiThread(() -> {
                         if (isFinishing() || !"Mods".equals(activePage) || requestGeneration != renderGeneration) return;
                         results.removeAllViews();
-                        results.addView(label("Falha ao consultar Modrinth: " + error.getMessage(), 12, MUTED, false));
+                        status.setText("Falha ao consultar Modrinth: " + error.getMessage());
+                        results.addView(status);
                         search.setEnabled(true);
                     });
                 }
             });
+        });
+        addText("Compatibilidade é filtrada por versão do Minecraft e loader. Alguns mods também exigem dependências.", 11, MUTED, false);
+    }
+
+    private void chooseModTarget(boolean chooseVersion) {
+        String[] choices = chooseVersion
+                ? new String[]{"1.21.1", "1.20.1", "1.19.2"}
+                : new String[]{"Fabric", "Forge", "NeoForge", "Quilt"};
+        String current = chooseVersion ? selectedGameVersion : loaderLabel(selectedModLoader);
+        int selected = 0;
+        for (int i = 0; i < choices.length; i++) if (choices[i].equalsIgnoreCase(current)) selected = i;
+        new AlertDialog.Builder(this)
+                .setTitle(chooseVersion ? "Versão do Minecraft" : "Mod loader")
+                .setSingleChoiceItems(choices, selected, (dialog, which) -> {
+                    if (chooseVersion) selectedGameVersion = choices[which];
+                    else selectedModLoader = choices[which].toLowerCase(java.util.Locale.ROOT);
+                    getPreferences(MODE_PRIVATE).edit()
+                            .putString("mod-game-version", selectedGameVersion)
+                            .putString("mod-loader", selectedModLoader).apply();
+                    dialog.dismiss();
+                    activePage = "Mods";
+                    render();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private String loaderLabel(String loader) {
+        if (loader == null || loader.isEmpty()) return "Fabric";
+        return switch (loader.toLowerCase(java.util.Locale.ROOT)) {
+            case "neoforge" -> "NeoForge";
+            case "forge" -> "Forge";
+            case "quilt" -> "Quilt";
+            default -> "Fabric";
+        };
+    }
+
+    private void installMod(ModrinthApi.Project project, Button install, TextView status, int requestGeneration) {
+        final String targetVersion = selectedGameVersion;
+        final String targetLoader = selectedModLoader;
+        install.setEnabled(false);
+        status.setText("Procurando uma versão compatível de " + project.title + "…");
+        network.execute(() -> {
+            try {
+                ModrinthApi.ModFile mod = ModrinthApi.findCompatibleFile(project, targetVersion, targetLoader);
+                if (mod == null) {
+                    runOnUiThread(() -> {
+                        if (!isFinishing() && requestGeneration == renderGeneration) {
+                            status.setText("Não há arquivo .jar para " + targetVersion + " com " + loaderLabel(targetLoader) + ".");
+                            install.setEnabled(true);
+                        }
+                    });
+                    return;
+                }
+                runOnUiThread(() -> {
+                    if (!isFinishing() && requestGeneration == renderGeneration) {
+                        status.setText("Baixando " + mod.filename + "…");
+                    }
+                });
+                java.io.File modsDirectory = GameInstanceManager.getModsDirectory(this, targetVersion, targetLoader);
+                java.io.File installed = ModInstaller.install(mod, modsDirectory);
+                runOnUiThread(() -> {
+                    if (!isFinishing() && requestGeneration == renderGeneration) {
+                        status.setText("Instalado: " + installed.getName() + " · instância " + targetVersion + " / " + loaderLabel(targetLoader) + ".");
+                        install.setText("Instalado");
+                        install.setEnabled(true);
+                    }
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!isFinishing() && requestGeneration == renderGeneration) {
+                        status.setText("Falha ao instalar: " + error.getMessage());
+                        install.setEnabled(true);
+                    }
+                });
+            }
         });
     }
 
@@ -446,7 +556,7 @@ public final class MainActivity extends Activity {
         play.setOnClickListener(v -> Toast.makeText(this,
                 "O runtime de Minecraft Java para Android ainda não está integrado.", Toast.LENGTH_LONG).show());
         launchRow.addView(play, new LinearLayout.LayoutParams(0, dp(42), 1f));
-        Button version = button("Vanilla 1.21.1  ⌄", false);
+        Button version = button("Vanilla 1.21.1 ⌄", false);
         LinearLayout.LayoutParams versionParams = new LinearLayout.LayoutParams(dp(150), dp(42));
         versionParams.leftMargin = dp(8);
         launchRow.addView(version, versionParams);
