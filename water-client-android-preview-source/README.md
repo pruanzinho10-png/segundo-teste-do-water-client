@@ -6,12 +6,13 @@ Projeto Android em desenvolvimento para Minecraft: Java Edition, com interface h
 
 ## Estado honesto do projeto
 
-- `android/`: aplicativo Android nativo com navegação horizontal, perfis Offline persistentes, servidores locais editáveis, busca pública do Modrinth e preferências de animação.
+- `android/`: aplicativo Android nativo com navegação horizontal, perfis Offline persistentes, servidores locais editáveis, catálogo Modrinth e instalação de JARs na instância padrão.
 - `preview/`: demonstração visual interativa. Os dados, login, instalações e downloads mostrados nessa página são explicitamente simulados.
 - A execução real de Minecraft Java ainda não está integrada. O aplicativo Android não finge iniciar o jogo; a ação de jogar explica que falta o runtime.
 - Login Microsoft ainda depende de registrar o aplicativo e configurar o fluxo oficial de OAuth. Nenhuma chave ou token fictício está incluído.
-- Modrinth: a busca no app consulta a API pública e abre os projetos oficiais; instalar arquivos em instâncias ainda depende do runtime.
+- Modrinth: a busca consulta a API pública, filtra por versão do Minecraft e loader, baixa o JAR compatível e confere tamanho, formato e SHA-1 antes de gravá-lo em `Android/data/<id-do-app>/files/WaterClient/instances/minecraft-<versão>-<loader>/mods`. O runtime ainda não consome esses arquivos porque não está integrado.
 - CurseForge exige chave autorizada e uma arquitetura segura de backend; não há chave inventada nem embutida.
+- A instalação atual baixa apenas o arquivo principal do projeto. Dependências obrigatórias podem precisar ser instaladas separadamente.
 
 ## Prévia web
 
