@@ -1,8 +1,8 @@
 # Pesquisa do runtime Android
 
-## Estado analisado
+## Estado do projeto
 
-O diretório atual não continha o projeto Water Client anterior. A nova base foi iniciada como Android nativo; ela não incorpora o launcher Fabric/Electron anterior.
+O Water Client atual é um app Android nativo de interface e gerenciamento de perfis. Ele ainda não inclui uma JVM móvel, a ponte JNI de inicialização, LWJGL adaptado ao Android, renderer OpenGL/Vulkan nem o ciclo de vida do processo do jogo. `java` disponível para compilar o app não é uma JVM capaz de executar Minecraft Java dentro do Android.
 
 ## Referência: Amethyst Android
 
@@ -21,7 +21,7 @@ O código da referência é LGPL-3.0. Qualquer integração futura deve manter a
 ## Arquitetura recomendada
 
 1. Escolher um commit/release upstream específico e revisar todas as licenças dos submódulos e bibliotecas nativas.
-2. Integrar o runtime como módulo isolado, preservando avisos e limites de licença; a UI não deve iniciar JVM nem manipular bibliotecas nativas diretamente.
+2. Integrar o runtime como módulo isolado, preservando avisos e limites de licença; a UI não deve iniciar JVM nem manipular bibliotecas nativas diretamente. Amethyst-Android é uma base existente de launcher com runtimes móveis, integração LWJGL/GLFW, renderização e suporte a Fabric/Forge. O projeto publica sob LGPL-3.0 e lista várias dependências com licenças próprias; cada componente precisa de revisão antes de redistribuição.
 3. Implementar uma interface de runtime para instalação de versão, carregador, autenticação, parâmetros de memória, renderer, entrada e ciclo de vida do processo.
 4. Testar primeiro ARM64 e GPU/renderizadores reais. Compatibilidade de um carregador não pode ser inferida só pela existência de um seletor de versão.
 5. Configurar OAuth Microsoft com aplicativo registrado e fluxo oficial; nunca persistir senha, nem criar tokens offline falsos.
@@ -36,6 +36,16 @@ O código da referência é LGPL-3.0. Qualquer integração futura deve manter a
 
 O Manifest solicita `landscape`. O projeto também mantém conteúdo principal com rolagem horizontalmente organizada. Android 16 pode ignorar a orientação solicitada em janelas de largura mínima de 600 dp quando o app tem target SDK 36 ou superior; nesses dispositivos a interface precisa continuar adaptável. Em telefones compactos, o bloqueio de landscape permanece solicitado.
 
-## Bloqueios do ambiente nesta etapa
+## Instalação de mods no Water Client
 
-Este ambiente tem JDK 21, mas não tem Gradle, Android SDK/ADB, dispositivo Android nem configuração OAuth Microsoft. Portanto, não foi possível compilar APK nem validar landscape em aparelho.
+A implementação usa o endpoint oficial de versões do Modrinth filtrado por `game_versions` e `loaders`. O arquivo principal é baixado para a pasta `mods` da instância gerenciada, em armazenamento específico do app; o app verifica tipo JAR, limite de tamanho e SHA-1 antes de substituir um arquivo. Esse diretório ainda não é lido por um runtime de jogo integrado. Mods com dependências obrigatórias exigem instalação separada nesta etapa.
+
+## Trabalho ainda necessário para executar o jogo
+
+1. Integrar uma base de runtime Android real, em vez de chamar `java` do sistema Android.
+2. Instalar runtime Java apropriado para a versão de Minecraft e ABI do dispositivo.
+3. Integrar os stubs/bibliotecas nativas de LWJGL e a superfície gráfica do Android.
+4. Resolver o manifesto oficial do Minecraft, bibliotecas, natives, argumentos e classpath.
+5. Conectar autenticação oficial e mover o jogo para a instância cuja pasta `mods` o app gerencia.
+6. Testar em ARM64 real e no emulador x86_64; compatibilidade gráfica não pode ser validada só compilando o APK.
+
