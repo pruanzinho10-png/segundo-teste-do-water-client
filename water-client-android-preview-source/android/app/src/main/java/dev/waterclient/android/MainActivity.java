@@ -92,7 +92,8 @@ public final class MainActivity extends Activity {
         profile.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
         header.addView(profile, new LinearLayout.LayoutParams(-2, dp(44)));
         root.addView(header);
-        root.addView(divider());
+        View separator = divider();
+        root.addView(separator);
 
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.HORIZONTAL);
@@ -123,10 +124,28 @@ public final class MainActivity extends Activity {
         content.setBackgroundColor(BG);
         content.setPadding(dp(8), dp(5), dp(4), dp(8));
         scroll.addView(content, new android.widget.FrameLayout.LayoutParams(-1, -2));
-        root.addView(label("O client mais limpo para celulares.", 11, MUTED, false));
+        TextView footer = label("O client mais limpo para celulares.", 11, MUTED, false);
+        root.addView(footer);
         setContentView(root);
         animateEntry(root);
+        root.post(() -> ensureBodyHeight(root, header, separator, body, footer, bodyParams));
         showPage();
+    }
+
+    private void ensureBodyHeight(LinearLayout root, View header, View separator, LinearLayout body,
+                                  View footer, LinearLayout.LayoutParams bodyParams) {
+        int available = root.getHeight() - root.getPaddingTop() - root.getPaddingBottom()
+                - header.getHeight() - separator.getHeight() - footer.getHeight() - bodyParams.topMargin;
+        Log.i(TAG, "DIAG containers build=" + DIAGNOSTIC_BUILD
+                + " root=" + root.getWidth() + "x" + root.getHeight()
+                + " body=" + body.getWidth() + "x" + body.getHeight()
+                + " availableBodyHeight=" + available);
+        if (body.getHeight() <= 0 && available > 0) {
+            bodyParams.height = available;
+            bodyParams.weight = 0f;
+            body.setLayoutParams(bodyParams);
+            Log.w(TAG, "DIAG appliedBodyHeightFallback=" + available);
+        }
     }
 
     private void showPage() {
@@ -150,7 +169,7 @@ public final class MainActivity extends Activity {
             throw error;
         }
         logContentState("after-page-build");
-        content.post(() -> logContentState("after-layout"));
+        content.postDelayed(() -> logContentState("after-layout-stable"), 120);
     }
 
     private void logContentState(String stage) {
