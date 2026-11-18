@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 /** Primeira base Android: navegação landscape e perfis Offline persistentes. */
 public final class MainActivity extends Activity {
     private static final String TAG = "WaterClientDiag";
-    private static final String DIAGNOSTIC_BUILD = "diag-2026-11-17-r1";
+    private static final String DIAGNOSTIC_BUILD = "diag-2026-11-17-r2";
     private static final int BG = Color.rgb(7, 15, 25);
     private static final int PANEL = Color.rgb(17, 29, 43);
     private static final int PANEL_2 = Color.rgb(25, 41, 57);
@@ -101,7 +101,7 @@ public final class MainActivity extends Activity {
         header.addView(profile, new LinearLayout.LayoutParams(-2, dp(44)));
         root.addView(header);
         View separator = divider();
-        root.addView(separator);
+        root.addView(separator, new LinearLayout.LayoutParams(-1, dp(1)));
 
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.HORIZONTAL);
