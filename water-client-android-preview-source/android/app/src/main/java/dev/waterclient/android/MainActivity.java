@@ -577,8 +577,8 @@ public final class MainActivity extends Activity {
         LinearLayout statusRow = new LinearLayout(this);
         statusRow.setGravity(Gravity.CENTER_VERTICAL);
         statusRow.setPadding(dp(2), dp(11), 0, 0);
-        statusRow.addView(label("●  Modo de demonstração", 10, MUTED, false), new LinearLayout.LayoutParams(0, -2, 1f));
-        statusRow.addView(label("Runtime de jogo não conectado", 10, MUTED, false));
+        statusRow.addView(label("●  Water Client", 10, MUTED, false), new LinearLayout.LayoutParams(0, -2, 1f));
+        statusRow.addView(label("Runtime Java integrado · toque em Jogar", 10, MUTED, false));
         content.addView(statusRow);
     }
 
