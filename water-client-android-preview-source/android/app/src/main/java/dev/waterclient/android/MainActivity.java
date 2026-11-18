@@ -115,12 +115,30 @@ public final class MainActivity extends Activity {
         body.addView(nav, new LinearLayout.LayoutParams(dp(142), -1));
         nav.setVisibility("Boas-vindas".equals(activePage) ? View.GONE : View.VISIBLE);
         for (String page : pages) {
-            Button item = button(page, page.equals(activePage));
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, 0, 1f);
-            p.bottomMargin = dp(3);
+            if ("Configurações".equals(page)) continue;
+            boolean selected = page.equals(activePage);
+            Button item = button(navIcon(page) + "  " + page, selected);
+            item.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+            item.setPadding(dp(12), 0, dp(8), 0);
+            item.setTextSize(12);
+            item.setTextColor(selected ? AQUA : TEXT);
+            item.setBackgroundTintList(android.content.res.ColorStateList.valueOf(selected ? Color.rgb(23, 60, 67) : PANEL_2));
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, dp(42));
+            p.bottomMargin = dp(5);
             nav.addView(item, p);
             item.setOnClickListener(v -> { activePage = page; render(); });
         }
+        View navSpacer = new View(this);
+        nav.addView(navSpacer, new LinearLayout.LayoutParams(1, 0, 1f));
+        boolean settingsSelected = "Configurações".equals(activePage);
+        Button settingsItem = button("⚙  Configurações", settingsSelected);
+        settingsItem.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        settingsItem.setPadding(dp(12), 0, dp(8), 0);
+        settingsItem.setTextSize(12);
+        settingsItem.setTextColor(settingsSelected ? AQUA : TEXT);
+        settingsItem.setBackgroundTintList(android.content.res.ColorStateList.valueOf(settingsSelected ? Color.rgb(23, 60, 67) : PANEL_2));
+        nav.addView(settingsItem, new LinearLayout.LayoutParams(-1, dp(42)));
+        settingsItem.setOnClickListener(v -> { activePage = "Configurações"; render(); });
 
         ScrollView scroll = new ScrollView(this);
         pageScroll = scroll;
@@ -387,26 +405,103 @@ public final class MainActivity extends Activity {
     }
 
     private void homePage() {
-        addText("BEM-VINDO AO WATER CLIENT", 12, MUTED, true);
-        addText("Pronto para jogar?", 27, TEXT, true);
-        LinearLayout card = card();
-        card.setBackgroundColor(Color.rgb(22, 52, 59));
-        card.addView(label("PERFIL ATIVO  ·  " + (activeProfile.trim().isEmpty() ? "nenhum" : activeProfile), 12, AQUA, true));
-        card.addView(label("Minecraft Java Edition", 20, TEXT, true));
-        card.addView(label("Runtime Android ainda não integrado", 13, MUTED, false));
-        Button play = button("JOGAR  ·  INDISPONÍVEL NESTA VERSÃO", false);
+        LinearLayout pageHeading = new LinearLayout(this);
+        pageHeading.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout headingCopy = new LinearLayout(this);
+        headingCopy.setOrientation(LinearLayout.VERTICAL);
+        headingCopy.addView(label("Pronto para jogar?", 25, TEXT, true));
+        headingCopy.addView(label("Olá, " + activeProfile + ". Sua jornada começa aqui.", 12, MUTED, false));
+        pageHeading.addView(headingCopy, new LinearLayout.LayoutParams(0, -2, 1f));
+        TextView offlineTag = label("PERFIL OFFLINE", 10, AQUA, true);
+        offlineTag.setPadding(dp(10), dp(5), dp(10), dp(5));
+        offlineTag.setBackground(rounded(Color.rgb(16, 53, 60), 24));
+        pageHeading.addView(offlineTag);
+        LinearLayout.LayoutParams headingParams = new LinearLayout.LayoutParams(-1, -2);
+        headingParams.bottomMargin = dp(14);
+        content.addView(pageHeading, headingParams);
+
+        LinearLayout hero = card();
+        hero.setBackground(rounded(Color.rgb(23, 62, 67), 12));
+        hero.setPadding(dp(18), dp(14), dp(18), dp(14));
+        LinearLayout heroTop = new LinearLayout(this);
+        heroTop.setGravity(Gravity.CENTER_VERTICAL);
+        TextView localStatus = label("●  PERFIL LOCAL", 10, Color.rgb(167, 241, 214), true);
+        localStatus.setPadding(dp(9), dp(5), dp(9), dp(5));
+        localStatus.setBackground(rounded(Color.rgb(22, 76, 67), 24));
+        heroTop.addView(localStatus, new LinearLayout.LayoutParams(0, -2, 1f));
+        heroTop.addView(label("Minecraft Java · protótipo", 11, TEXT, false));
+        hero.addView(heroTop);
+        LinearLayout.LayoutParams heroTitleParams = new LinearLayout.LayoutParams(-1, -2);
+        heroTitleParams.topMargin = dp(10);
+        hero.addView(label("WATER CLIENT", 20, TEXT, true), heroTitleParams);
+        hero.addView(label("O client mais limpo para celulares.", 12, Color.rgb(189, 209, 211), false));
+
+        LinearLayout launchRow = new LinearLayout(this);
+        launchRow.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams launchRowParams = new LinearLayout.LayoutParams(-1, -2);
+        launchRowParams.topMargin = dp(12);
+        hero.addView(launchRow, launchRowParams);
+        Button play = button("▷  JOGAR", true);
         play.setEnabled(false);
-        card.addView(play);
-        card.setOnClickListener(v -> new AlertDialog.Builder(this)
-                .setTitle("Execução ainda não disponível")
-                .setMessage("Este protótipo ainda não inclui runtime Java para Android, LWJGL nem renderer. Ele não pode iniciar Minecraft.")
-                .setPositiveButton("Entendi", null).show());
-        addCard(card);
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        addSummary(row, "MODS", "Integração pendente");
-        addSummary(row, "INSTÂNCIAS", "Runtime pendente");
-        content.addView(row);
+        launchRow.addView(play, new LinearLayout.LayoutParams(0, dp(42), 1f));
+        Button version = button("Vanilla 1.21.1  ⌄", false);
+        LinearLayout.LayoutParams versionParams = new LinearLayout.LayoutParams(dp(150), dp(42));
+        versionParams.leftMargin = dp(8);
+        launchRow.addView(version, versionParams);
+        version.setOnClickListener(v -> { activePage = "Versões"; render(); });
+
+        LinearLayout.LayoutParams heroParams = new LinearLayout.LayoutParams(-1, -2);
+        heroParams.bottomMargin = dp(10);
+        content.addView(hero, heroParams);
+
+        LinearLayout shortcuts = new LinearLayout(this);
+        shortcuts.setOrientation(LinearLayout.HORIZONTAL);
+        shortcuts.addView(dashboardCard("✣", "Biblioteca de mods", "Explore projetos do Modrinth", "Mods"),
+                new LinearLayout.LayoutParams(0, dp(72), 1f));
+        LinearLayout.LayoutParams serverCardParams = new LinearLayout.LayoutParams(0, dp(72), 1f);
+        serverCardParams.leftMargin = dp(8);
+        shortcuts.addView(dashboardCard("▣", "Servidores", "Contas Premium e Offline", "Servidores"), serverCardParams);
+        content.addView(shortcuts);
+
+        LinearLayout statusRow = new LinearLayout(this);
+        statusRow.setGravity(Gravity.CENTER_VERTICAL);
+        statusRow.setPadding(dp(2), dp(11), 0, 0);
+        statusRow.addView(label("●  Modo de demonstração", 10, MUTED, false), new LinearLayout.LayoutParams(0, -2, 1f));
+        statusRow.addView(label("Runtime de jogo não conectado", 10, MUTED, false));
+        content.addView(statusRow);
+    }
+
+    private String navIcon(String page) {
+        return switch (page) {
+            case "Início" -> "⌂";
+            case "Versões" -> "▤";
+            case "Mods" -> "✣";
+            case "Servidores" -> "▣";
+            case "Downloads" -> "↓";
+            case "Contas" -> "♙";
+            default -> "•";
+        };
+    }
+
+    private View dashboardCard(String icon, String title, String subtitle, String page) {
+        LinearLayout panel = card();
+        panel.setOrientation(LinearLayout.HORIZONTAL);
+        panel.setGravity(Gravity.CENTER_VERTICAL);
+        panel.setPadding(dp(12), dp(9), dp(10), dp(9));
+        panel.setBackground(rounded(PANEL_2, 10));
+        TextView iconView = label(icon, 22, AQUA, true);
+        iconView.setGravity(Gravity.CENTER);
+        panel.addView(iconView, new LinearLayout.LayoutParams(dp(31), -1));
+        LinearLayout copy = new LinearLayout(this);
+        copy.setOrientation(LinearLayout.VERTICAL);
+        copy.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams copyParams = new LinearLayout.LayoutParams(0, -1, 1f);
+        copyParams.leftMargin = dp(7);
+        panel.addView(copy, copyParams);
+        copy.addView(label(title, 13, TEXT, true));
+        copy.addView(label(subtitle, 10, MUTED, false));
+        panel.setOnClickListener(v -> { activePage = page; render(); });
+        return panel;
     }
 
     private void accountsPage() {
@@ -564,6 +659,13 @@ public final class MainActivity extends Activity {
         panel.setBackground(background);
         panel.setPadding(dp(16), dp(13), dp(16), dp(13));
         return panel;
+    }
+
+    private GradientDrawable rounded(int color, int radiusDp) {
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(color);
+        background.setCornerRadius(dp(radiusDp));
+        return background;
     }
 
     private Button button(String text, boolean selected) {
