@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 /** Primeira base Android: navegação landscape e perfis Offline persistentes. */
 public final class MainActivity extends Activity {
     private static final String TAG = "WaterClientDiag";
-    private static final String DIAGNOSTIC_BUILD = "diag-2026-11-17-r3";
+    private static final String DIAGNOSTIC_BUILD = "diag-2026-11-17-r4";
     private static final int BG = Color.rgb(7, 15, 25);
     private static final int PANEL = Color.rgb(17, 29, 43);
     private static final int PANEL_2 = Color.rgb(25, 41, 57);
@@ -428,7 +428,8 @@ public final class MainActivity extends Activity {
         TextView localStatus = label("●  PERFIL LOCAL", 10, Color.rgb(167, 241, 214), true);
         localStatus.setPadding(dp(9), dp(5), dp(9), dp(5));
         localStatus.setBackground(rounded(Color.rgb(22, 76, 67), 24));
-        heroTop.addView(localStatus, new LinearLayout.LayoutParams(0, -2, 1f));
+        heroTop.addView(localStatus, new LinearLayout.LayoutParams(-2, -2));
+        heroTop.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1f));
         heroTop.addView(label("Minecraft Java · protótipo", 11, TEXT, false));
         hero.addView(heroTop);
         LinearLayout.LayoutParams heroTitleParams = new LinearLayout.LayoutParams(-1, -2);
@@ -442,7 +443,8 @@ public final class MainActivity extends Activity {
         launchRowParams.topMargin = dp(12);
         hero.addView(launchRow, launchRowParams);
         Button play = button("▷  JOGAR", true);
-        play.setEnabled(false);
+        play.setOnClickListener(v -> Toast.makeText(this,
+                "O runtime de Minecraft Java para Android ainda não está integrado.", Toast.LENGTH_LONG).show());
         launchRow.addView(play, new LinearLayout.LayoutParams(0, dp(42), 1f));
         Button version = button("Vanilla 1.21.1  ⌄", false);
         LinearLayout.LayoutParams versionParams = new LinearLayout.LayoutParams(dp(150), dp(42));
