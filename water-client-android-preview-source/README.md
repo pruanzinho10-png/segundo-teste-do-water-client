@@ -2,45 +2,37 @@
 
 **O client mais limpo para celulares.**
 
-Projeto Android em desenvolvimento para Minecraft: Java Edition, com interface horizontal e uma prévia web navegável em `preview/`.
+Launcher Android para Minecraft: Java Edition, com interface própria, instalação de mods pelo Modrinth e runtime Java Android integrado ao APK.
 
-## Estado honesto do projeto
+## O que já funciona
 
-- `android/`: aplicativo Android nativo com navegação horizontal, perfis Offline persistentes, servidores locais editáveis, catálogo Modrinth e instalação de JARs na instância escolhida.
-- `preview/`: demonstração visual interativa. Os dados, login, instalações e downloads mostrados nessa página são explicitamente simulados.
-- A execução real de Minecraft Java ainda não está integrada. O aplicativo Android não finge iniciar o jogo; a ação de jogar explica que falta o runtime.
-- Login Microsoft ainda depende de registrar o aplicativo e configurar o fluxo oficial de OAuth. Nenhuma chave ou token fictício está incluído.
-- Modrinth: a busca consulta a API pública, filtra por versão do Minecraft e loader, baixa o JAR compatível e confere tamanho, formato e SHA-1 antes de gravá-lo em `Android/data/<id-do-app>/files/WaterClient/instances/minecraft-<versão>-<loader>/mods`. O runtime ainda não consome esses arquivos porque não está integrado.
-- CurseForge exige chave autorizada e uma arquitetura segura de backend; não há chave inventada nem embutida.
-- A instalação atual baixa apenas o arquivo principal do projeto. Dependências obrigatórias podem precisar ser instaladas separadamente.
+- A interface Android horizontal abre a configuração do runtime ao tocar em **Jogar**.
+- O runtime Amethyst/Pojav cuida de baixar os arquivos oficiais do Minecraft, preparar Java/LWJGL, autenticar a conta e iniciar o jogo. Na primeira execução, escolha a versão e configure uma conta dentro do launcher.
+- A Biblioteca de mods consulta o Modrinth e instala o JAR verificado em `.minecraft/mods`, a pasta compartilhada com o runtime. Selecione aqui a mesma versão e loader que usar no runtime. Mods com dependências obrigatórias ainda precisam delas instaladas.
+- O workflow busca o código do runtime em uma revisão fixa e prepara os componentes necessários durante a compilação; não precisa enviar o código nativo pesado dentro deste repositório.
+- `preview/` é uma demonstração web; suas contas e downloads são simulados.
+
+O perfil Offline criado na tela Water Client organiza essa interface; ele não autentica no Minecraft. A conta e a licença do jogo são verificadas pelo runtime oficial. Não há senha ou token fictício no app.
+
+## Gerar o APK
+
+Envie o repositório ao GitHub e abra **Actions → Build Water Client with Java runtime**. Baixe o artefato `water-client-android-debug` quando a execução terminar. Esse APK inclui o runtime Android. O build usa JDK 21, Android NDK e baixa os componentes Java necessários automaticamente.
+
+O projeto Android pequeno em `android/` contém a interface Water e o instalador de mods. O workflow compõe esses arquivos com o motor Android externo fixado no script de build; por isso, `gradle assembleDebug` executado apenas em `android/` gera somente a interface e não é a forma de obter o APK com runtime.
 
 ## Prévia web
 
-Abra `preview/index.html` diretamente no navegador. Os controles de navegação, conta Offline de demonstração, seleção de versão e configuração de animações funcionam no navegador, sem realizar autenticação ou instalar arquivos.
+Abra `preview/index.html` no navegador. Ela representa a identidade e navegação do launcher, mas não baixa o jogo nem instala mods.
 
-## Compilar o Android
+## Licenças
 
-Requisitos: JDK 17+, Android SDK Platform 36 e Android Build Tools. A pasta `android` contém um projeto Gradle Android. Em ambiente com Gradle 8.11.1 instalado:
+O runtime integrado é baseado no [AngelAuraMC/Amethyst-Android](https://github.com/AngelAuraMC/Amethyst-Android), sob LGPL-3.0, e inclui componentes com licenças próprias. Consulte `docs/THIRD-PARTY-LICENSES/AMETHYST-LICENSE.txt` e as licenças listadas no repositório upstream. A revisão de runtime usada no build está fixada em `scripts/prepare-runtime.py`/`.github/workflows/android.yml`.
 
-```powershell
-cd android
-gradle assembleDebug
-```
+## Pastas
 
-O APK de desenvolvimento será criado em `app/build/outputs/apk/debug/app-debug.apk`.
-
-## Diagnóstico do MuMu
-
-O build atual registra a página e as dimensões/filhos da interface na tag Logcat `WaterClientDiag`. Veja [docs/mumu-diagnostics.md](docs/mumu-diagnostics.md) para gerar o APK e capturar o log no MuMu.
-
-## Por que o runtime é uma etapa separada
-
-Executar Minecraft Java no Android exige mais que baixar versões: são necessários runtimes Java compatíveis com ARM, adaptações Android para LWJGL/GLFW, renderizadores nativos e tratamento de entradas. A análise técnica de referência e a licença estão em `docs/ENGINE-RESEARCH.md`.
-
-## Estrutura
-
-- `android/`: app Android e gerenciamento de perfis Offline no dispositivo.
-- `preview/`: experiência conceitual navegável, marcada como demonstração.
-- `docs/`: pesquisa de arquitetura e plano de integração do runtime.
-- `.github/workflows/android.yml`: compilação de APK em GitHub Actions.
+- `android/`: interface Water Client e integração com Modrinth.
+- `scripts/prepare-runtime.py`: aplica a interface e identidade Water sobre o runtime no build.
+- `.github/workflows/android.yml`: monta e publica o APK de desenvolvimento.
+- `preview/`: demonstração web.
+- `docs/`: diagnóstico, pesquisa e avisos de licença.
 
