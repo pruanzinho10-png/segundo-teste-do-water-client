@@ -6,7 +6,7 @@ Projeto Android em desenvolvimento para Minecraft: Java Edition, com interface h
 
 ## Estado honesto do projeto
 
-- `android/`: aplicativo Android nativo com navegação horizontal, perfis Offline persistentes, servidores locais editáveis, catálogo Modrinth e instalação de JARs na instância padrão.
+- `android/`: aplicativo Android nativo com navegação horizontal, perfis Offline persistentes, servidores locais editáveis, catálogo Modrinth e instalação de JARs na instância escolhida.
 - `preview/`: demonstração visual interativa. Os dados, login, instalações e downloads mostrados nessa página são explicitamente simulados.
 - A execução real de Minecraft Java ainda não está integrada. O aplicativo Android não finge iniciar o jogo; a ação de jogar explica que falta o runtime.
 - Login Microsoft ainda depende de registrar o aplicativo e configurar o fluxo oficial de OAuth. Nenhuma chave ou token fictício está incluído.
