@@ -1,4 +1,4 @@
-name: build-water-client-android
+name: Build Water Client with Java runtime
 
 on:
   push:
@@ -11,33 +11,66 @@ permissions:
 
 jobs:
   android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
+      - name: Checkout Water Client
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Checkout pinned Amethyst Android runtime
+        uses: actions/checkout@v4
+        with:
+          repository: AngelAuraMC/Amethyst-Android
+          ref: 166af615dbdca1a507b8c2d379822cca02795132
+          path: runtime-engine
+          submodules: recursive
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
+      - name: Download Java 8 runtime for Android
+        uses: dawidd6/action-download-artifact@v9
         with:
-          packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
+          workflow: build.yml
+          path: runtime-engine/app_pojavlauncher/src/main/assets/components/jre
+          workflow_conclusion: completed
+          repo: AngelAuraMC/angelauramc-openjdk-build
+          branch: buildjre8
+          name: jre8-pojav
+
+      - name: Set up Android NDK
+        uses: android-actions/setup-ndk@v3
+        with:
+          ndk-version: 27.3.13750724
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.11.1'
+          validate-wrappers: false
+          gradle-version: '9.6.1'
 
-      - name: Build APK
-        run: gradle -p water-client-android-preview-source/android :app:assembleDebug --console=plain
+      - name: Detect Water Client source folder
+        run: |
+          if [ -f water-client-android-preview-source/scripts/prepare-runtime.py ]; then
+            echo "WATER_SOURCE_DIR=water-client-android-preview-source" >> "$GITHUB_ENV"
+          else
+            echo "WATER_SOURCE_DIR=." >> "$GITHUB_ENV"
+          fi
 
-      - name: Upload APK
+      - name: Apply Water Client UI and branding
+        run: |
+          bash runtime-engine/scripts/languagelist_updater.sh
+          python3 "$WATER_SOURCE_DIR/scripts/prepare-runtime.py" runtime-engine
+
+      - name: Build Android APK
+        run: gradle -p runtime-engine :app_pojavlauncher:assembleDebug --console=plain
+
+      - name: Upload Water Client APK
         uses: actions/upload-artifact@v4
         with:
           name: water-client-android-debug
-          path: water-client-android-preview-source/android/app/build/outputs/apk/debug/app-debug.apk
+          path: runtime-engine/app_pojavlauncher/build/outputs/apk/debug/app_pojavlauncher-debug.apk
           if-no-files-found: error
+          retention-days: 14

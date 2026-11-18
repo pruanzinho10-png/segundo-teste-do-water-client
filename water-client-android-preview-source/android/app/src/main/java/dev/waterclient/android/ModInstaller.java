@@ -138,4 +138,3 @@ final class ModInstaller {
         return result.toString();
     }
 }
-

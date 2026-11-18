@@ -21,4 +21,3 @@ O suporte de login Microsoft/Minecraft é fornecido pelo runtime upstream. O per
 ## Licenciamento
 
 Amethyst-Android é LGPL-3.0; seus submódulos e bibliotecas nativas têm licenças próprias. O código upstream permanece no repositório original, referenciado por SHA fixo no workflow. Este repositório inclui a licença principal e o script de integração Water. Antes de redistribuir builds fora do artefato de desenvolvimento, publique também a revisão/fonte correspondente do runtime e preserve os avisos de todas as dependências.
-

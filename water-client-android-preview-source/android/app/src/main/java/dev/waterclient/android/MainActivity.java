@@ -830,4 +830,3 @@ public final class MainActivity extends Activity {
         super.onDestroy();
     }
 }
-

@@ -35,4 +35,3 @@ O runtime integrado é baseado no [AngelAuraMC/Amethyst-Android](https://github.
 - `.github/workflows/android.yml`: monta e publica o APK de desenvolvimento.
 - `preview/`: demonstração web.
 - `docs/`: diagnóstico, pesquisa e avisos de licença.
-

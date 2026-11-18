@@ -26,4 +26,3 @@ Abra o app e reproduza o problema. Depois capture os logs:
 ```
 
 Se o Android recusar instalar por assinatura diferente, desinstale o APK anterior no MuMu e instale o novo artefato. A desinstalação apaga os perfis locais e os arquivos do jogo guardados pelo app.
-
