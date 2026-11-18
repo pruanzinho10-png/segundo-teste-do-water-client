@@ -16,7 +16,7 @@ android {
 
     buildTypes {
         getByName("debug") {
-            applicationIdSuffix = ".diagnostic.r3"
+            applicationIdSuffix = ".diagnostic.r4"
         }
     }
 
