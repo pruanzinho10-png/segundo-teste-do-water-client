@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 /** Primeira base Android: navegação landscape e perfis Offline persistentes. */
 public final class MainActivity extends Activity {
     private static final String TAG = "WaterClientDiag";
-    private static final String DIAGNOSTIC_BUILD = "mod-installer-feature-1";
+    private static final String DIAGNOSTIC_BUILD = "runtime-android-1";
     private static final int BG = Color.rgb(7, 15, 25);
     private static final int PANEL = Color.rgb(17, 29, 43);
     private static final int PANEL_2 = Color.rgb(25, 41, 57);
@@ -192,8 +192,8 @@ public final class MainActivity extends Activity {
                 case "Configurações" -> settingsPage();
                 case "Mods" -> modsPage();
                 case "Servidores" -> serversPage();
-                case "Versões" -> infoPage("Versões e instâncias", "A instalação de Vanilla, Fabric, Forge, NeoForge e Quilt depende do runtime Android. Compatibilidade deve ser validada por versão.");
-                case "Downloads" -> infoPage("Downloads", "Não há downloads ativos. O app não baixa runtime nem arquivos de jogo nesta versão.");
+                case "Versões" -> infoPage("Versões e instâncias", "O botão Jogar abre o runtime Android integrado. Escolha lá a versão e o carregador que correspondem aos filtros usados na Biblioteca de mods.");
+                case "Downloads" -> infoPage("Downloads", "A compilação do APK inclui o runtime Java Android. O launcher baixa os arquivos oficiais do Minecraft quando você escolhe uma versão.");
                 default -> infoPage("WATER CLIENT", "O client mais limpo para celulares.");
             }
         } catch (RuntimeException error) {
@@ -240,7 +240,7 @@ public final class MainActivity extends Activity {
     private void modsPage() {
         final int requestGeneration = renderGeneration;
         addText("Biblioteca de mods", 26, TEXT, true);
-        addText("Pesquise no Modrinth e instale o JAR na instância da versão e loader escolhidos.", 13, MUTED, false);
+        addText("Pesquise no Modrinth e instale o JAR em .minecraft/mods, compartilhada com o runtime. Use a mesma versão e loader escolhidos aqui.", 13, MUTED, false);
 
         LinearLayout filters = new LinearLayout(this);
         filters.setOrientation(LinearLayout.HORIZONTAL);
@@ -268,12 +268,12 @@ public final class MainActivity extends Activity {
         LinearLayout results = new LinearLayout(this);
         results.setOrientation(LinearLayout.VERTICAL);
         content.addView(results, new LinearLayout.LayoutParams(-1, -2));
-        TextView status = label("Os mods serão guardados na instância escolhida.", 12, MUTED, false);
+        TextView status = label("Os mods serão guardados na pasta .minecraft/mods do runtime.", 12, MUTED, false);
         results.addView(status);
         try {
             addText("Destino: " + GameInstanceManager.getModsDirectory(this, selectedGameVersion, selectedModLoader).getAbsolutePath(), 10, MUTED, false);
         } catch (Exception error) {
-            addText("Não foi possível preparar a pasta da instância: " + error.getMessage(), 10, MUTED, false);
+            addText("Não foi possível preparar a pasta de mods: " + error.getMessage(), 10, MUTED, false);
         }
         search.setOnClickListener(v -> {
             String term = query.getText().toString().trim();
@@ -384,7 +384,7 @@ public final class MainActivity extends Activity {
                 java.io.File installed = ModInstaller.install(mod, modsDirectory);
                 runOnUiThread(() -> {
                     if (!isFinishing() && requestGeneration == renderGeneration) {
-                        status.setText("Instalado: " + installed.getName() + " · instância " + targetVersion + " / " + loaderLabel(targetLoader) + ".");
+                        status.setText("Instalado em .minecraft/mods: " + installed.getName() + " · compatível com " + targetVersion + " / " + loaderLabel(targetLoader) + ".");
                         install.setText("Instalado");
                         install.setEnabled(true);
                     }
@@ -487,14 +487,14 @@ public final class MainActivity extends Activity {
         Log.i(TAG, "DIAG welcomePage entered generation=" + renderGeneration);
         addText("WATER CLIENT", 13, AQUA, true);
         addText("O client mais limpo para celulares.", 27, TEXT, true);
-        addText("Escolha como quer entrar. Esta primeira versão cria perfis locais; o runtime Java e o OAuth oficial ainda estão em integração.", 14, MUTED, false);
+        addText("Seu perfil local organiza a interface. O runtime integrado cuida da conta Minecraft e da autenticação oficial ao iniciar o jogo.", 14, MUTED, false);
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         content.addView(row, new LinearLayout.LayoutParams(-1, -2));
         LinearLayout premiumCard = card();
         premiumCard.addView(label("✦  MINECRAFT JAVA ORIGINAL", 15, AQUA, true));
         premiumCard.addView(label("Conta Microsoft que possui o jogo", 12, TEXT, true));
-        premiumCard.addView(label("OAuth ainda não configurado; nenhum login é simulado.", 11, MUTED, false));
+        premiumCard.addView(label("O login Microsoft é feito pelo runtime integrado; nenhuma senha é simulada pelo Water Client.", 11, MUTED, false));
         Button premiumButton = button("Entrar com Microsoft", false);
         premiumButton.setOnClickListener(v -> new AlertDialog.Builder(this)
                 .setTitle("Login Microsoft não configurado")
@@ -540,7 +540,7 @@ public final class MainActivity extends Activity {
         localStatus.setBackground(rounded(Color.rgb(22, 76, 67), 24));
         heroTop.addView(localStatus, new LinearLayout.LayoutParams(-2, -2));
         heroTop.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1f));
-        heroTop.addView(label("Minecraft Java · protótipo", 11, TEXT, false));
+        heroTop.addView(label("Minecraft Java · runtime Android integrado", 11, TEXT, false));
         hero.addView(heroTop);
         LinearLayout.LayoutParams heroTitleParams = new LinearLayout.LayoutParams(-1, -2);
         heroTitleParams.topMargin = dp(10);
@@ -553,8 +553,7 @@ public final class MainActivity extends Activity {
         launchRowParams.topMargin = dp(12);
         hero.addView(launchRow, launchRowParams);
         Button play = button("▷  JOGAR", true);
-        play.setOnClickListener(v -> Toast.makeText(this,
-                "O runtime de Minecraft Java para Android ainda não está integrado.", Toast.LENGTH_LONG).show());
+        play.setOnClickListener(v -> launchMinecraftRuntime());
         launchRow.addView(play, new LinearLayout.LayoutParams(0, dp(42), 1f));
         Button version = button("Vanilla 1.21.1 ⌄", false);
         LinearLayout.LayoutParams versionParams = new LinearLayout.LayoutParams(dp(150), dp(42));
@@ -657,7 +656,7 @@ public final class MainActivity extends Activity {
         }
         boolean reduced = android.os.Build.VERSION.SDK_INT >= 26 && !ValueAnimator.areAnimatorsEnabled();
         addText(reduced ? "Animações limitadas pela preferência de movimento do Android." : "As transições respeitam a opção de animação escolhida.", 13, MUTED, false);
-        addText("Memória, renderer e gráficos serão configuráveis quando o runtime de jogo estiver integrado.", 13, MUTED, false);
+        addText("Memória, renderer e gráficos são ajustados na tela de configurações do runtime integrado.", 13, MUTED, false);
     }
 
     private void infoPage(String title, String message) {
@@ -808,6 +807,17 @@ public final class MainActivity extends Activity {
         View v = new View(this);
         v.setBackgroundColor(Color.rgb(39, 58, 73));
         return v;
+    }
+
+    private void launchMinecraftRuntime() {
+        try {
+            Intent intent = new Intent();
+            intent.setClassName(this, "net.kdt.pojavlaunch.TestStorageActivity");
+            startActivity(intent);
+        } catch (Exception error) {
+            Log.e(TAG, "Não foi possível iniciar o runtime integrado", error);
+            Toast.makeText(this, "O runtime Java não está disponível nesta compilação.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private int dp(int value) {
