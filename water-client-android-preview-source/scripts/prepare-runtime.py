@@ -81,9 +81,9 @@ gradle = gradle.replace('resValue "string", "app_name", "Amethyst"',
                         'resValue "string", "app_name", "WATER CLIENT"')
 gradle = gradle.replace('resValue "string", "app_short_name", "Amethyst"',
                         'resValue "string", "app_short_name", "WATER CLIENT"')
-# The Water Client UI targets API 36; pinning the merged app to that installed SDK
-# keeps the build reproducible when the upstream launcher requires a newer SDK.
-gradle = gradle.replace("compileSdk = 37", "compileSdk = 36")
+# androidnsbypass requires Android API 36.1. The SDK platform package is android-36;
+# AGP's minorApiLevel selects the 36.1 API surface without changing targetSdk.
+gradle = gradle.replace("compileSdk = 37", "compileSdk { version = release(36) { minorApiLevel = 1 } }")
 gradle = gradle.replace("sourceCompatibility JavaVersion.VERSION_1_8", "sourceCompatibility JavaVersion.VERSION_17")
 gradle = gradle.replace("targetCompatibility JavaVersion.VERSION_1_8", "targetCompatibility JavaVersion.VERSION_17")
 gradle_path.write_text(gradle, encoding="utf-8")
