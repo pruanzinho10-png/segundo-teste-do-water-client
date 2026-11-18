@@ -186,15 +186,15 @@ public final class MainActivity extends Activity {
                 + " contentParent=" + (content.getParent() == null ? "null" : content.getParent().getClass().getSimpleName()));
         try {
             switch (activePage) {
-                case "Boas-vindas" -> welcomePage();
-                case "Início" -> homePage();
-                case "Contas" -> accountsPage();
-                case "Configurações" -> settingsPage();
-                case "Mods" -> modsPage();
-                case "Servidores" -> serversPage();
-                case "Versões" -> infoPage("Versões e instâncias", "O botão Jogar abre o runtime Android integrado. Escolha lá a versão e o carregador que correspondem aos filtros usados na Biblioteca de mods.");
-                case "Downloads" -> infoPage("Downloads", "A compilação do APK inclui o runtime Java Android. O launcher baixa os arquivos oficiais do Minecraft quando você escolhe uma versão.");
-                default -> infoPage("WATER CLIENT", "O client mais limpo para celulares.");
+                case "Boas-vindas": welcomePage(); break;
+                case "Início": homePage(); break;
+                case "Contas": accountsPage(); break;
+                case "Configurações": settingsPage(); break;
+                case "Mods": modsPage(); break;
+                case "Servidores": serversPage(); break;
+                case "Versões": infoPage("Versões e instâncias", "O botão Jogar abre o runtime Android integrado. Escolha lá a versão e o carregador que correspondem aos filtros usados na Biblioteca de mods."); break;
+                case "Downloads": infoPage("Downloads", "A compilação do APK inclui o runtime Java Android. O launcher baixa os arquivos oficiais do Minecraft quando você escolhe uma versão."); break;
+                default: infoPage("WATER CLIENT", "O client mais limpo para celulares."); break;
             }
         } catch (RuntimeException error) {
             Log.e(TAG, "DIAG showPage failed generation=" + renderGeneration + " page=" + activePage, error);
@@ -218,7 +218,8 @@ public final class MainActivity extends Activity {
                         .append(" vis=").append(child.getVisibility())
                         .append(" bounds=").append(child.getLeft()).append(',').append(child.getTop())
                         .append('-').append(child.getRight()).append(',').append(child.getBottom());
-                if (child instanceof TextView textView) {
+                if (child instanceof TextView) {
+                    TextView textView = (TextView) child;
                     String text = textView.getText().toString().replace('\n', ' ');
                     if (text.length() > 70) text = text.substring(0, 70);
                     childSummary.append(" text=\"").append(text).append('"');
@@ -350,12 +351,11 @@ public final class MainActivity extends Activity {
 
     private String loaderLabel(String loader) {
         if (loader == null || loader.isEmpty()) return "Fabric";
-        return switch (loader.toLowerCase(java.util.Locale.ROOT)) {
-            case "neoforge" -> "NeoForge";
-            case "forge" -> "Forge";
-            case "quilt" -> "Quilt";
-            default -> "Fabric";
-        };
+        String normalized = loader.toLowerCase(java.util.Locale.ROOT);
+        if ("neoforge".equals(normalized)) return "NeoForge";
+        if ("forge".equals(normalized)) return "Forge";
+        if ("quilt".equals(normalized)) return "Quilt";
+        return "Fabric";
     }
 
     private void installMod(ModrinthApi.Project project, Button install, TextView status, int requestGeneration) {
@@ -583,15 +583,13 @@ public final class MainActivity extends Activity {
     }
 
     private String navIcon(String page) {
-        return switch (page) {
-            case "Início" -> "⌂";
-            case "Versões" -> "▤";
-            case "Mods" -> "✣";
-            case "Servidores" -> "▣";
-            case "Downloads" -> "↓";
-            case "Contas" -> "♙";
-            default -> "•";
-        };
+        if ("Início".equals(page)) return "⌂";
+        if ("Versões".equals(page)) return "▤";
+        if ("Mods".equals(page)) return "✣";
+        if ("Servidores".equals(page)) return "▣";
+        if ("Downloads".equals(page)) return "↓";
+        if ("Contas".equals(page)) return "♙";
+        return "•";
     }
 
     private View dashboardCard(String icon, String title, String subtitle, String page) {
