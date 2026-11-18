@@ -77,10 +77,18 @@ public final class MainActivity extends Activity {
         root.setBackgroundColor(BG);
         root.setPadding(dp(18), dp(12), dp(18), dp(12));
         root.setOnApplyWindowInsetsListener((view, insets) -> {
-            view.setPadding(dp(18) + insets.getSystemWindowInsetLeft(),
-                    dp(12) + insets.getSystemWindowInsetTop(),
-                    dp(18) + insets.getSystemWindowInsetRight(),
-                    dp(12) + insets.getSystemWindowInsetBottom());
+            int maxInset = dp(64);
+            int rawLeft = insets.getSystemWindowInsetLeft();
+            int rawTop = insets.getSystemWindowInsetTop();
+            int rawRight = insets.getSystemWindowInsetRight();
+            int rawBottom = insets.getSystemWindowInsetBottom();
+            int left = Math.min(Math.max(rawLeft, 0), maxInset);
+            int top = Math.min(Math.max(rawTop, 0), maxInset);
+            int right = Math.min(Math.max(rawRight, 0), maxInset);
+            int bottom = Math.min(Math.max(rawBottom, 0), maxInset);
+            Log.i(TAG, "DIAG windowInsets raw=" + rawLeft + ',' + rawTop + ',' + rawRight + ',' + rawBottom
+                    + " applied=" + left + ',' + top + ',' + right + ',' + bottom + " cap=" + maxInset);
+            view.setPadding(dp(18) + left, dp(12) + top, dp(18) + right, dp(12) + bottom);
             return insets;
         });
 
@@ -138,6 +146,10 @@ public final class MainActivity extends Activity {
                 - header.getHeight() - separator.getHeight() - footer.getHeight() - bodyParams.topMargin;
         Log.i(TAG, "DIAG containers build=" + DIAGNOSTIC_BUILD
                 + " root=" + root.getWidth() + "x" + root.getHeight()
+                + " padding=" + root.getPaddingLeft() + ',' + root.getPaddingTop() + ','
+                + root.getPaddingRight() + ',' + root.getPaddingBottom()
+                + " header=" + header.getHeight() + " separator=" + separator.getHeight()
+                + " footer=" + footer.getHeight() + " topMargin=" + bodyParams.topMargin
                 + " body=" + body.getWidth() + "x" + body.getHeight()
                 + " availableBodyHeight=" + available);
         if (body.getHeight() <= 0 && available > 0) {
