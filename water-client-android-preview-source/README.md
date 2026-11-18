@@ -28,6 +28,10 @@ gradle assembleDebug
 
 O APK de desenvolvimento será criado em `app/build/outputs/apk/debug/app-debug.apk`.
 
+## Diagnóstico do MuMu
+
+O build atual registra a página e as dimensões/filhos da interface na tag Logcat `WaterClientDiag`. Veja [docs/mumu-diagnostics.md](docs/mumu-diagnostics.md) para gerar o APK e capturar o log no MuMu.
+
 ## Por que o runtime é uma etapa separada
 
 Executar Minecraft Java no Android exige mais que baixar versões: são necessários runtimes Java compatíveis com ARM, adaptações Android para LWJGL/GLFW, renderizadores nativos e tratamento de entradas. A análise técnica de referência e a licença estão em `docs/ENGINE-RESEARCH.md`.
@@ -38,3 +42,4 @@ Executar Minecraft Java no Android exige mais que baixar versões: são necessá
 - `preview/`: experiência conceitual navegável, marcada como demonstração.
 - `docs/`: pesquisa de arquitetura e plano de integração do runtime.
 - `.github/workflows/android.yml`: compilação de APK em GitHub Actions.
+

@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -32,6 +33,8 @@ import java.util.concurrent.Executors;
 
 /** Primeira base Android: navegação landscape e perfis Offline persistentes. */
 public final class MainActivity extends Activity {
+    private static final String TAG = "WaterClientDiag";
+    private static final String DIAGNOSTIC_BUILD = "diag-2026-11-17-r1";
     private static final int BG = Color.rgb(7, 15, 25);
     private static final int PANEL = Color.rgb(17, 29, 43);
     private static final int PANEL_2 = Color.rgb(25, 41, 57);
@@ -42,6 +45,7 @@ public final class MainActivity extends Activity {
     private final List<String> pages = java.util.Arrays.asList("Início", "Versões", "Mods", "Servidores", "Downloads", "Contas", "Configurações");
     private LinearLayout root;
     private LinearLayout content;
+    private ScrollView pageScroll;
     private String activePage = "Início";
     private String activeProfile = "";
     private final ExecutorService network = Executors.newSingleThreadExecutor();
@@ -60,6 +64,9 @@ public final class MainActivity extends Activity {
             getPreferences(MODE_PRIVATE).edit().putString("active-profile", activeProfile).apply();
         }
         activePage = savedProfiles.isEmpty() ? "Boas-vindas" : "Início";
+        Log.i(TAG, "DIAG " + DIAGNOSTIC_BUILD + " onCreate activePage=" + activePage
+                + " activeProfileEmpty=" + activeProfile.trim().isEmpty()
+                + " savedProfiles=" + savedProfiles.size());
         render();
     }
 
@@ -107,6 +114,7 @@ public final class MainActivity extends Activity {
         }
 
         ScrollView scroll = new ScrollView(this);
+        pageScroll = scroll;
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(BG);
         body.addView(scroll, new LinearLayout.LayoutParams(0, -1, 1));
@@ -123,17 +131,59 @@ public final class MainActivity extends Activity {
 
     private void showPage() {
         content.removeAllViews();
-        switch (activePage) {
-            case "Boas-vindas" -> welcomePage();
-            case "Início" -> homePage();
-            case "Contas" -> accountsPage();
-            case "Configurações" -> settingsPage();
-            case "Mods" -> modsPage();
-            case "Servidores" -> serversPage();
-            case "Versões" -> infoPage("Versões e instâncias", "A instalação de Vanilla, Fabric, Forge, NeoForge e Quilt depende do runtime Android. Compatibilidade deve ser validada por versão.");
-            case "Downloads" -> infoPage("Downloads", "Não há downloads ativos. O app não baixa runtime nem arquivos de jogo nesta versão.");
-            default -> infoPage("WATER CLIENT", "O client mais limpo para celulares.");
+        Log.i(TAG, "DIAG showPage begin generation=" + renderGeneration + " page=" + activePage
+                + " contentParent=" + (content.getParent() == null ? "null" : content.getParent().getClass().getSimpleName()));
+        try {
+            switch (activePage) {
+                case "Boas-vindas" -> welcomePage();
+                case "Início" -> homePage();
+                case "Contas" -> accountsPage();
+                case "Configurações" -> settingsPage();
+                case "Mods" -> modsPage();
+                case "Servidores" -> serversPage();
+                case "Versões" -> infoPage("Versões e instâncias", "A instalação de Vanilla, Fabric, Forge, NeoForge e Quilt depende do runtime Android. Compatibilidade deve ser validada por versão.");
+                case "Downloads" -> infoPage("Downloads", "Não há downloads ativos. O app não baixa runtime nem arquivos de jogo nesta versão.");
+                default -> infoPage("WATER CLIENT", "O client mais limpo para celulares.");
+            }
+        } catch (RuntimeException error) {
+            Log.e(TAG, "DIAG showPage failed generation=" + renderGeneration + " page=" + activePage, error);
+            throw error;
         }
+        logContentState("after-page-build");
+        content.post(() -> logContentState("after-layout"));
+    }
+
+    private void logContentState(String stage) {
+        String scrollParent = pageScroll == null || pageScroll.getParent() == null
+                ? "null" : pageScroll.getParent().getClass().getSimpleName();
+        String contentParent = content == null || content.getParent() == null
+                ? "null" : content.getParent().getClass().getSimpleName();
+        StringBuilder childSummary = new StringBuilder();
+        if (content != null) {
+            for (int i = 0; i < content.getChildCount(); i++) {
+                View child = content.getChildAt(i);
+                if (i > 0) childSummary.append(" | ");
+                childSummary.append(i).append(':').append(child.getClass().getSimpleName())
+                        .append(" vis=").append(child.getVisibility())
+                        .append(" bounds=").append(child.getLeft()).append(',').append(child.getTop())
+                        .append('-').append(child.getRight()).append(',').append(child.getBottom());
+                if (child instanceof TextView textView) {
+                    String text = textView.getText().toString().replace('\n', ' ');
+                    if (text.length() > 70) text = text.substring(0, 70);
+                    childSummary.append(" text=\"").append(text).append('"');
+                }
+            }
+        }
+        Log.i(TAG, "DIAG " + stage + " build=" + DIAGNOSTIC_BUILD
+                + " page=" + activePage
+                + " generation=" + renderGeneration
+                + " children=" + (content == null ? -1 : content.getChildCount())
+                + " contentVisibility=" + (content == null ? -1 : content.getVisibility())
+                + " contentSize=" + (content == null ? "null" : content.getWidth() + "x" + content.getHeight())
+                + " scrollSize=" + (pageScroll == null ? "null" : pageScroll.getWidth() + "x" + pageScroll.getHeight())
+                + " scrollVisibility=" + (pageScroll == null ? -1 : pageScroll.getVisibility())
+                + " contentParent=" + contentParent + " scrollParent=" + scrollParent
+                + " childSummary=[" + childSummary + ']');
     }
 
     private void modsPage() {
@@ -275,6 +325,7 @@ public final class MainActivity extends Activity {
     }
 
     private void welcomePage() {
+        Log.i(TAG, "DIAG welcomePage entered generation=" + renderGeneration);
         addText("WATER CLIENT", 13, AQUA, true);
         addText("O client mais limpo para celulares.", 27, TEXT, true);
         addText("Escolha como quer entrar. Esta primeira versão cria perfis locais; o runtime Java e o OAuth oficial ainda estão em integração.", 14, MUTED, false);
@@ -524,3 +575,4 @@ public final class MainActivity extends Activity {
         super.onDestroy();
     }
 }
+
