@@ -240,7 +240,7 @@ public final class MainActivity extends Activity {
     private void modsPage() {
         final int requestGeneration = renderGeneration;
         addText("Biblioteca de mods", 26, TEXT, true);
-        addText("Pesquise no Modrinth e instale o JAR na instância padrão do Water Client.", 13, MUTED, false);
+        addText("Pesquise no Modrinth e instale o JAR na instância da versão e loader escolhidos.", 13, MUTED, false);
 
         LinearLayout filters = new LinearLayout(this);
         filters.setOrientation(LinearLayout.HORIZONTAL);
