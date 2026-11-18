@@ -8,8 +8,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.util.Locale;
 import java.util.UUID;
@@ -40,11 +38,17 @@ final class ModInstaller {
             if (!actualSha1.equalsIgnoreCase(mod.sha1)) {
                 throw new IllegalStateException("A verificação SHA-1 do download falhou; o arquivo foi descartado.");
             }
-            try {
-                Files.move(temporary.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE,
-                        StandardCopyOption.REPLACE_EXISTING);
-            } catch (Exception atomicMoveUnavailable) {
-                Files.move(temporary.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            if (target.exists() && !target.delete()) {
+                throw new IllegalStateException("Não foi possível substituir a versão anterior do mod.");
+            }
+            if (!temporary.renameTo(target)) {
+                try (InputStream input = new BufferedInputStream(new FileInputStream(temporary));
+                     BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(target))) {
+                    byte[] buffer = new byte[32 * 1024];
+                    int count;
+                    while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
+                }
+                if (!temporary.delete()) temporary.deleteOnExit();
             }
             return target;
         } finally {
