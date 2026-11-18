@@ -21,6 +21,36 @@ target_java.mkdir(parents=True, exist_ok=True)
 for source in water_java.glob("*.java"):
     shutil.copy2(source, target_java / source.name)
 
+bridge_source = repo / "runtime-overlay/net/kdt/pojavlaunch/WaterClientRuntimeBridge.java"
+bridge_target = app / "src/main/java/net/kdt/pojavlaunch/WaterClientRuntimeBridge.java"
+if not bridge_source.is_file():
+    raise SystemExit(f"Missing Water Client runtime bridge: {bridge_source}")
+bridge_target.parent.mkdir(parents=True, exist_ok=True)
+shutil.copy2(bridge_source, bridge_target)
+
+license_source = repo / "docs/THIRD-PARTY-LICENSES/AMETHYST-LICENSE.txt"
+license_target = app / "src/main/assets/licenses/AMETHYST-LICENSE.txt"
+if not license_source.is_file():
+    raise SystemExit(f"Missing Amethyst license text: {license_source}")
+license_target.parent.mkdir(parents=True, exist_ok=True)
+shutil.copy2(license_source, license_target)
+
+# Select Water Client's local profile inside Amethyst after its storage and preferences initialize.
+# The bridge keeps Amethyst's online-license requirement for local authentication intact.
+storage_activity = app / "src/main/java/net/kdt/pojavlaunch/TestStorageActivity.java"
+storage_source = storage_activity.read_text(encoding="utf-8")
+storage_anchor = """        Intent intent =  new Intent(this, LauncherActivity.class);
+        startActivity(intent);
+        finish();"""
+storage_replacement = """        WaterClientRuntimeBridge.prepare(this, getIntent());
+        Intent intent =  new Intent(this, LauncherActivity.class);
+        startActivity(intent);
+        finish();"""
+if "WaterClientRuntimeBridge.prepare(this, getIntent());" not in storage_source:
+    if storage_anchor not in storage_source:
+        raise SystemExit("Could not find the expected Amethyst storage-to-launcher handoff")
+    storage_activity.write_text(storage_source.replace(storage_anchor, storage_replacement, 1), encoding="utf-8")
+
 water_icon = repo / "android/app/src/main/res/drawable/ic_water.xml"
 engine_drawables = app / "src/main/res/drawable"
 engine_drawables.mkdir(parents=True, exist_ok=True)
@@ -92,4 +122,4 @@ strings = re.sub(r'(<string name="app_name"[^>]*>).*?(</string>)', r'\1WATER CLI
 strings = re.sub(r'(<string name="app_short_name"[^>]*>).*?(</string>)', r'\1WATER CLIENT\2', strings, count=1)
 strings_path.write_text(strings, encoding="utf-8")
 
-print("Water Client UI and identity overlaid onto Amethyst Android runtime.")
+print("Water Client UI, profile bridge, and identity overlaid onto Amethyst Android runtime.")

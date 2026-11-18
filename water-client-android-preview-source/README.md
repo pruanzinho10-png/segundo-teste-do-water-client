@@ -8,6 +8,8 @@ Launcher Android para Minecraft: Java Edition, com interface própria, instalaç
 
 - A interface Android horizontal abre a configuração do runtime ao tocar em **Jogar**.
 - O runtime Amethyst/Pojav cuida de baixar os arquivos oficiais do Minecraft, preparar Java/LWJGL, autenticar a conta e iniciar o jogo. Na primeira execução, escolha a versão e configure uma conta dentro do launcher.
+- O perfil local selecionado no Water Client é sincronizado com o runtime depois que uma conta online licenciada já foi adicionada. O app mantém a verificação de licença do Amethyst; perfis locais não substituem uma conta que possui Minecraft Java.
+- A aba **Créditos e licenças** identifica AngelAuraMC/Amethyst, PojavLauncher e Boardwalk, e oferece os links do código-fonte e da LGPL-3.0.
 - A Biblioteca de mods consulta o Modrinth e instala o JAR verificado em `.minecraft/mods`, a pasta compartilhada com o runtime. Selecione aqui a mesma versão e loader que usar no runtime. Mods com dependências obrigatórias ainda precisam delas instaladas.
 - O workflow busca o código do runtime em uma revisão fixa e prepara os componentes necessários durante a compilação; não precisa enviar o código nativo pesado dentro deste repositório.
 - `preview/` é uma demonstração web; suas contas e downloads são simulados.

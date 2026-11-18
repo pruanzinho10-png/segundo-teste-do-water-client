@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 /** Primeira base Android: navegação landscape e perfis Offline persistentes. */
 public final class MainActivity extends Activity {
     private static final String TAG = "WaterClientDiag";
-    private static final String DIAGNOSTIC_BUILD = "runtime-android-1";
+    private static final String DIAGNOSTIC_BUILD = "runtime-android-2";
     private static final int BG = Color.rgb(7, 15, 25);
     private static final int PANEL = Color.rgb(17, 29, 43);
     private static final int PANEL_2 = Color.rgb(25, 41, 57);
@@ -42,7 +42,7 @@ public final class MainActivity extends Activity {
     private static final int TEXT = Color.rgb(238, 247, 250);
     private static final int MUTED = Color.rgb(160, 180, 192);
     private static final String PREFS = "water-client";
-    private final List<String> pages = java.util.Arrays.asList("Início", "Versões", "Mods", "Servidores", "Downloads", "Contas", "Configurações");
+    private final List<String> pages = java.util.Arrays.asList("Início", "Versões", "Mods", "Servidores", "Downloads", "Contas", "Créditos", "Configurações");
     private LinearLayout root;
     private LinearLayout content;
     private ScrollView pageScroll;
@@ -189,6 +189,7 @@ public final class MainActivity extends Activity {
                 case "Boas-vindas": welcomePage(); break;
                 case "Início": homePage(); break;
                 case "Contas": accountsPage(); break;
+                case "Créditos": creditsPage(); break;
                 case "Configurações": settingsPage(); break;
                 case "Mods": modsPage(); break;
                 case "Servidores": serversPage(); break;
@@ -589,6 +590,7 @@ public final class MainActivity extends Activity {
         if ("Servidores".equals(page)) return "▣";
         if ("Downloads".equals(page)) return "↓";
         if ("Contas".equals(page)) return "♙";
+        if ("Créditos".equals(page)) return "©";
         return "•";
     }
 
@@ -615,7 +617,7 @@ public final class MainActivity extends Activity {
 
     private void accountsPage() {
         addText("Contas", 26, TEXT, true);
-        addText("Perfis Offline ficam salvos neste aparelho. Eles não são identidades Microsoft verificadas.", 13, MUTED, false);
+        addText("Perfis locais ficam salvos neste aparelho. Para usá-los no runtime, conecte primeiro uma conta Microsoft que possua Minecraft Java; depois volte ao Water Client e toque em Jogar para sincronizar o perfil.", 13, MUTED, false);
         Button add = button("＋  Criar perfil Offline", true);
         add.setOnClickListener(v -> promptOffline());
         content.addView(add);
@@ -633,11 +635,42 @@ public final class MainActivity extends Activity {
             addCard(row);
         }
         Button microsoft = button("Adicionar conta Microsoft", false);
-        microsoft.setOnClickListener(v -> new AlertDialog.Builder(this)
-                .setTitle("Login Microsoft não configurado")
-                .setMessage("A autenticação oficial exige registrar o aplicativo e configurar o fluxo OAuth. Nenhuma senha será solicitada nem simulada por esta versão.")
-                .setPositiveButton("Fechar", null).show());
+        microsoft.setOnClickListener(v -> launchMinecraftRuntime(false));
         content.addView(microsoft);
+    }
+
+    private void creditsPage() {
+        addText("Créditos e licenças", 26, TEXT, true);
+        addText("O Water Client usa projetos de código aberto para oferecer o runtime Java no Android.", 13, MUTED, false);
+
+        LinearLayout amethyst = card();
+        amethyst.addView(label("AMETHYST ANDROID", 16, AQUA, true));
+        amethyst.addView(label("Criado e mantido pela AngelAuraMC e seus contribuidores. O launcher e o runtime Android são baseados no PojavLauncher e no Boardwalk.", 13, TEXT, false));
+        amethyst.addView(label("Licença principal: GNU LGPL v3. O build usa a revisão 166af615dbdca1a507b8c2d379822cca02795132 do repositório oficial.", 12, MUTED, false));
+        Button source = button("Ver código-fonte do Amethyst", false);
+        source.setOnClickListener(v -> openWebPage("https://github.com/AngelAuraMC/Amethyst-Android"));
+        amethyst.addView(source);
+        Button license = button("Ler licença LGPL v3", false);
+        license.setOnClickListener(v -> openWebPage("https://www.gnu.org/licenses/lgpl-3.0.html"));
+        amethyst.addView(license);
+        addCard(amethyst);
+
+        LinearLayout other = card();
+        other.addView(label("DEPENDÊNCIAS E CRÉDITOS", 16, AQUA, true));
+        other.addView(label("O runtime também inclui bibliotecas com licenças próprias, como LWJGL, OpenJDK, GL4ES, MobileGlues e componentes Android. Consulte o README e os avisos de terceiros do projeto para a lista e os termos aplicáveis.", 13, MUTED, false));
+        Button projectDocs = button("Documentação e avisos do Water Client", false);
+        projectDocs.setOnClickListener(v -> openWebPage("https://github.com/pruanzinho10-png/segundo-teste-do-water-client"));
+        other.addView(projectDocs);
+        addCard(other);
+        addText("Marcas Minecraft e Microsoft pertencem aos seus respectivos titulares. O Water Client não é afiliado nem endossado por eles.", 11, MUTED, false);
+    }
+
+    private void openWebPage(String address) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(address)));
+        } catch (Exception error) {
+            Toast.makeText(this, "Não foi possível abrir o link.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void settingsPage() {
@@ -808,9 +841,16 @@ public final class MainActivity extends Activity {
     }
 
     private void launchMinecraftRuntime() {
+        launchMinecraftRuntime(true);
+    }
+
+    private void launchMinecraftRuntime(boolean useWaterProfile) {
         try {
             Intent intent = new Intent();
             intent.setClassName(this, "net.kdt.pojavlaunch.TestStorageActivity");
+            if (useWaterProfile && activeProfile != null && activeProfile.matches("[A-Za-z0-9_]{3,16}")) {
+                intent.putExtra("dev.waterclient.android.PROFILE_NAME", activeProfile);
+            }
             startActivity(intent);
         } catch (Exception error) {
             Log.e(TAG, "Não foi possível iniciar o runtime integrado", error);

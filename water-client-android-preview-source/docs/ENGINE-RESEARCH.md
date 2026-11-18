@@ -8,6 +8,8 @@ O workflow `.github/workflows/android.yml` baixa uma revisão fixa do projeto [A
 
 Na primeira abertura do runtime, o usuário precisa escolher/instalar uma versão, configurar o carregador quando necessário e entrar com a conta Minecraft. O botão Water Client entrega o controle ao launcher integrado; a seleção real de versão, autenticação e configurações de renderização acontecem nele.
 
+O Water Client envia o nome do perfil local selecionado ao `TestStorageActivity` do runtime. Após a inicialização do armazenamento, `WaterClientRuntimeBridge` seleciona ou cria esse perfil na pasta de contas do Amethyst somente quando o runtime já tem uma conta online que possui Minecraft Java. A exigência de licença do Amethyst permanece ativa: um perfil local do Water Client não autentica a conta, não concede licença e não permite contornar essa verificação. O botão **Adicionar conta Microsoft** abre o próprio fluxo de autenticação do Amethyst.
+
 ## Diretório de mods
 
 Em Android 10+, o runtime resolve a pasta do jogo em `Android/data/<pacote instalado>/files/.minecraft`. `GameInstanceManager` usa esse mesmo diretório e instala os JARs em `.minecraft/mods`. O jogo só carregará os mods se a versão e o loader usados no runtime forem os mesmos escolhidos no filtro do Modrinth. O instalador valida origem, HTTPS, tamanho, cabeçalho JAR e SHA-1. Dependências do mod ainda precisam ser instaladas separadamente.
@@ -20,4 +22,4 @@ O suporte de login Microsoft/Minecraft é fornecido pelo runtime upstream. O per
 
 ## Licenciamento
 
-Amethyst-Android é LGPL-3.0; seus submódulos e bibliotecas nativas têm licenças próprias. O código upstream permanece no repositório original, referenciado por SHA fixo no workflow. Este repositório inclui a licença principal e o script de integração Water. Antes de redistribuir builds fora do artefato de desenvolvimento, publique também a revisão/fonte correspondente do runtime e preserve os avisos de todas as dependências.
+Amethyst-Android é LGPL-3.0; seus submódulos e bibliotecas nativas têm licenças próprias. O código upstream permanece no repositório original, referenciado por SHA fixo no workflow. Este repositório inclui a licença principal e o script de integração Water; o build também coloca `AMETHYST-LICENSE.txt` nos assets do APK. A aba **Créditos e licenças** mostra os autores, o repositório e o link para os termos. Antes de redistribuir builds fora do artefato de desenvolvimento, publique também a revisão/fonte correspondente do runtime e preserve os avisos de todas as dependências.
