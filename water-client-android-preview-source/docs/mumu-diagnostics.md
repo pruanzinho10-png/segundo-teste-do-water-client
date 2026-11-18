@@ -1,20 +1,17 @@
-# Diagnóstico da tela no MuMu
+# Teste do Water Client no MuMu
 
-Este build registra a montagem da interface com a tag `WaterClientDiag`.
+O APK com runtime Java é criado pelo workflow do GitHub porque o build busca o engine Android, os submódulos nativos e os runtimes Java necessários.
 
-## Gerar o APK
+## Gerar e instalar
 
-Na raiz do repositório, execute:
+1. Envie o repositório para o GitHub e abra **Actions → Build Water Client with Java runtime**.
+2. Baixe `water-client-android-debug` nos artefatos da execução concluída.
+3. Instale o APK no MuMu. Abra WATER CLIENT e toque em **Jogar** para entrar no launcher integrado.
+4. Na primeira execução, configure uma conta e instale uma versão do Minecraft.
 
-```powershell
-gradle -p android :app:assembleDebug --console=plain
-```
+## Logs
 
-O APK fica em `android/app/build/outputs/apk/debug/app-debug.apk`. O build usa `versionCode` 2 e `versionName` `0.1.0-diagnostic`.
-
-## Capturar o log
-
-Com o MuMu aberto e o APK de diagnóstico instalado:
+Com o MuMu aberto e o APK instalado, no PowerShell:
 
 ```powershell
 $adb = "$env:ProgramFiles\Netease\MuMuPlayer\nx_main\adb.exe"
@@ -22,13 +19,11 @@ $adb = "$env:ProgramFiles\Netease\MuMuPlayer\nx_main\adb.exe"
 & $adb logcat -c
 ```
 
-Abra o WATER CLIENT no MuMu e então rode:
+Abra o app e reproduza o problema. Depois capture os logs:
 
 ```powershell
-& $adb logcat -d -s WaterClientDiag:I AndroidRuntime:E
+& $adb logcat -d -s WaterClientDiag:I AndroidRuntime:E PojavLauncher:I
 ```
 
-As linhas `WaterClientDiag` informam a página escolhida, a quantidade de componentes criados, o tamanho/visibilidade do `ScrollView` e os limites dos filhos após o layout. `AndroidRuntime` mostrará uma exceção caso a tela falhe durante a montagem.
-
-Se o Android recusar instalar o APK por assinatura diferente, desinstale a versão anterior no MuMu e instale o novo artefato. A desinstalação apaga os perfis locais salvos naquele emulador.
+Se o Android recusar instalar por assinatura diferente, desinstale o APK anterior no MuMu e instale o novo artefato. A desinstalação apaga os perfis locais e os arquivos do jogo guardados pelo app.
 
