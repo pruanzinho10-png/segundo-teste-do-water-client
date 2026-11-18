@@ -1,51 +1,24 @@
-# Pesquisa do runtime Android
+# Runtime Android do Water Client
 
-## Estado do projeto
+## Integração atual
 
-O Water Client atual é um app Android nativo de interface e gerenciamento de perfis. Ele ainda não inclui uma JVM móvel, a ponte JNI de inicialização, LWJGL adaptado ao Android, renderer OpenGL/Vulkan nem o ciclo de vida do processo do jogo. `java` disponível para compilar o app não é uma JVM capaz de executar Minecraft Java dentro do Android.
+O botão **Jogar** inicia a atividade de preparação do runtime Amethyst/Pojav no mesmo APK. Ele fornece a JVM móvel, a ponte JNI, LWJGL/GLFW, renderização, controles e o ciclo de vida do Minecraft; o runtime não usa o Java de sistema do Android.
 
-## Referência: Amethyst Android
+O workflow `.github/workflows/android.yml` baixa uma revisão fixa do projeto [AngelAuraMC/Amethyst-Android](https://github.com/AngelAuraMC/Amethyst-Android), inicializa os submódulos, obtém o pacote JRE Android e executa `scripts/prepare-runtime.py`. O script copia a interface Water Client, define sua tela inicial e aplica o ícone/nome. O restante do runtime é mantido no upstream para evitar duplicar mais de 160 MB de código e recursos nativos no repositório Water.
 
-O repositório [AngelAuraMC/Amethyst-Android](https://github.com/AngelAuraMC/Amethyst-Android) é um launcher Android/iOS baseado em Boardwalk/PojavLauncher e tem milhares de commits de engenharia de runtime. O README upstream informa suporte amplo a versões e carregadores, mas aponta uma compilação composta por módulos e componentes nativos, runtimes Java pré-compilados e LWJGL personalizado. Não é uma dependência Android simples que possa ser adicionada a `build.gradle`.
+Na primeira abertura do runtime, o usuário precisa escolher/instalar uma versão, configurar o carregador quando necessário e entrar com a conta Minecraft. O botão Water Client entrega o controle ao launcher integrado; a seleção real de versão, autenticação e configurações de renderização acontecem nele.
 
-Elementos relevantes observados na fonte upstream:
+## Diretório de mods
 
-- JREs móveis separados por versão e arquitetura; o projeto documenta ARM32, ARM64, x86 e x86_64.
-- LWJGL/GLFW precisa de stubs e integração nativa com a `ANativeWindow`.
-- A ponte EGL encaminha chamadas OpenGL; Vulkan e renderizadores alternativos seguem caminhos nativos próprios.
-- Os argumentos da JVM, bibliotecas nativas, ambiente do renderer, teclado/mouse/controle e processo de jogo são tratados em componentes específicos do runtime.
-- A compilação upstream requer submódulos recursivos e, para alguns caminhos, JRE/LWJGL preparados. O README também alerta sobre caminhos de build com espaços.
+Em Android 10+, o runtime resolve a pasta do jogo em `Android/data/<pacote instalado>/files/.minecraft`. `GameInstanceManager` usa esse mesmo diretório e instala os JARs em `.minecraft/mods`. O jogo só carregará os mods se a versão e o loader usados no runtime forem os mesmos escolhidos no filtro do Modrinth. O instalador valida origem, HTTPS, tamanho, cabeçalho JAR e SHA-1. Dependências do mod ainda precisam ser instaladas separadamente.
 
-O código da referência é LGPL-3.0. Qualquer integração futura deve manter avisos, atribuições, licenças e disponibilizar modificações cobertas pela LGPL. Esta base não copia nem redistribui arquivos do Amethyst.
+## Testes e limitações
 
-## Arquitetura recomendada
+Uma compilação bem-sucedida comprova que Java/runtime e binários nativos foram empacotados, mas não garante compatibilidade com toda GPU, versão ou modloader. O APK deve ser aberto no MuMu ou em um telefone para confirmar download inicial, autenticação, renderer e início de uma versão. Emuladores podem não reproduzir os mesmos renderizadores de aparelhos físicos.
 
-1. Escolher um commit/release upstream específico e revisar todas as licenças dos submódulos e bibliotecas nativas.
-2. Integrar o runtime como módulo isolado, preservando avisos e limites de licença; a UI não deve iniciar JVM nem manipular bibliotecas nativas diretamente. Amethyst-Android é uma base existente de launcher com runtimes móveis, integração LWJGL/GLFW, renderização e suporte a Fabric/Forge. O projeto publica sob LGPL-3.0 e lista várias dependências com licenças próprias; cada componente precisa de revisão antes de redistribuição.
-3. Implementar uma interface de runtime para instalação de versão, carregador, autenticação, parâmetros de memória, renderer, entrada e ciclo de vida do processo.
-4. Testar primeiro ARM64 e GPU/renderizadores reais. Compatibilidade de um carregador não pode ser inferida só pela existência de um seletor de versão.
-5. Configurar OAuth Microsoft com aplicativo registrado e fluxo oficial; nunca persistir senha, nem criar tokens offline falsos.
+O suporte de login Microsoft/Minecraft é fornecido pelo runtime upstream. O perfil Offline local do Water Client é apenas um perfil da interface e não substitui autenticação válida nem licença do jogo.
 
-## Serviços e autenticação
+## Licenciamento
 
-- A busca Android usa `GET /v2/search` do Modrinth, filtrando tipo `mod`, com `User-Agent` identificável. Resultados abrem a página oficial; a instalação ainda não é apresentada como pronta.
-- A API CurseForge usa `x-api-key`. A chave precisa ser autorizada e não deve ser embutida no APK público; será necessário backend ou configuração segura de distribuição.
-- Para um app móvel Microsoft, usar biblioteca oficial e Authorization Code com PKCE/OIDC. Isso depende de registro, redirect URI, assinatura Android e validação de propriedade Minecraft; token Microsoft por si só não equivale à verificação de licença Minecraft.
-
-## Orientação e versões recentes do Android
-
-O Manifest solicita `landscape`. O projeto também mantém conteúdo principal com rolagem horizontalmente organizada. Android 16 pode ignorar a orientação solicitada em janelas de largura mínima de 600 dp quando o app tem target SDK 36 ou superior; nesses dispositivos a interface precisa continuar adaptável. Em telefones compactos, o bloqueio de landscape permanece solicitado.
-
-## Instalação de mods no Water Client
-
-A implementação usa o endpoint oficial de versões do Modrinth filtrado por `game_versions` e `loaders`. O arquivo principal é baixado para a pasta `mods` da instância gerenciada, em armazenamento específico do app; o app verifica tipo JAR, limite de tamanho e SHA-1 antes de substituir um arquivo. Esse diretório ainda não é lido por um runtime de jogo integrado. Mods com dependências obrigatórias exigem instalação separada nesta etapa.
-
-## Trabalho ainda necessário para executar o jogo
-
-1. Integrar uma base de runtime Android real, em vez de chamar `java` do sistema Android.
-2. Instalar runtime Java apropriado para a versão de Minecraft e ABI do dispositivo.
-3. Integrar os stubs/bibliotecas nativas de LWJGL e a superfície gráfica do Android.
-4. Resolver o manifesto oficial do Minecraft, bibliotecas, natives, argumentos e classpath.
-5. Conectar autenticação oficial e mover o jogo para a instância cuja pasta `mods` o app gerencia.
-6. Testar em ARM64 real e no emulador x86_64; compatibilidade gráfica não pode ser validada só compilando o APK.
+Amethyst-Android é LGPL-3.0; seus submódulos e bibliotecas nativas têm licenças próprias. O código upstream permanece no repositório original, referenciado por SHA fixo no workflow. Este repositório inclui a licença principal e o script de integração Water. Antes de redistribuir builds fora do artefato de desenvolvimento, publique também a revisão/fonte correspondente do runtime e preserve os avisos de todas as dependências.
 
